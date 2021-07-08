@@ -5,7 +5,12 @@ module Rolify
     class RoleAdapter < RoleAdapterBase
       def where(relation, *args)
         conditions, values = build_conditions(relation, args)
+        
+        if role_class.role_join_class
+        relation.where(conditions, *values).merge(role_class.role_join_class.undiscarded)
+        else
         relation.where(conditions, *values)
+        end
       end
 
       def where_strict(relation, args)
@@ -22,7 +27,12 @@ module Rolify
         conditions.merge!(:name => args[:name])
         conditions = wrap_conditions ? { role_table => conditions } : conditions
 
+        if role_class.role_join_class
+        relation.where(conditions).merge(role_class.role_join_class.undiscarded)
+        else
         relation.where(conditions)
+        end
+
       end
 
       def find_cached(relation, args)
@@ -52,7 +62,11 @@ module Rolify
       end
 
       def add(relation, role)
+        if role_class.role_join_class
+          relation.roles << role unless relation.roles.merge(role_class.role_join_class.undiscarded).include?(role)
+        else
         relation.roles << role unless relation.roles.include?(role)
+        end
       end
 
       def remove(relation, role_name, resource = nil)

@@ -7,7 +7,12 @@ module Rolify
         roles = user && (user != :any) ? user.roles : self.role_class
         roles = roles.where('resource_type IN (?)', self.relation_types_for(relation))
         roles = roles.where(:name => role_name.to_s) if role_name && (role_name != :any)
-        roles
+        
+        if role_class.role_join_class
+          roles.merge(role_class.role_join_class.undiscarded)
+        else
+          roles
+        end
       end
 
       def resources_find(roles_table, relation, role_name)
@@ -23,7 +28,11 @@ module Rolify
                                     (#{quote_table(roles_table)}.resource_id IS NULL OR #{quote_table(roles_table)}.resource_id = #{quote_table(relation.table_name)}.#{quote_column(relation.primary_key)})")
         resources = resources.where("#{quote_table(roles_table)}.name IN (?) AND #{quote_table(roles_table)}.resource_type IN (?)", Array(role_name), klasses)
         resources = resources.select("#{quote_table(relation.table_name)}.*")
-        resources
+        if role_class.role_join_class
+          resources.merge(role_class.role_join_class.undiscarded)
+        else
+          resources
+        end
       end
 
       def in(relation, user, role_names)

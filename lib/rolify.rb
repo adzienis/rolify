@@ -19,15 +19,19 @@ module Rolify
     self.role_cname = options[:role_cname]
     self.role_table_name = self.role_cname.tableize.gsub(/\//, "_")
 
+
+
+
     # Option to support has_many :through
     rolify_options = {}
     has_many_through_table = options.delete(:has_many_through)
     if has_many_through_table
       self.role_join_table_name = has_many_through_table
       rolify_options[:through] = self.role_join_table_name
-
-      puts rolify_options
       has_many :roles, **rolify_options
+      role = self.role_cname.to_s.classify.constantize
+      role.singleton_class.send(:attr_accessor, :role_join_class)
+      role.role_join_class = self.name.constantize.reflect_on_association(has_many_through_table).klass
     else
       default_join_table = "#{self.to_s.tableize.gsub(/\//, "_")}_#{self.role_table_name}"
       options.reverse_merge!({:role_join_table_name => default_join_table})
@@ -38,6 +42,10 @@ module Rolify
     end
 
     self.adapter = Rolify::Adapter::Base.create("role_adapter", self.role_cname, self.name)
+
+    #self.define_method(:role_join_class) do
+    #  role_join_table_name.to_s.classify.constantize
+    #end
 
     #use strict roles
     self.strict_rolify = true if options[:strict]

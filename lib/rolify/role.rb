@@ -14,10 +14,21 @@ module Rolify
                                                   (resource.is_a?(Class) ? resource.to_s : resource.class.name if resource),
                                                   (resource.id if resource && !resource.is_a?(Class)))
 
-      if !roles.include?(role)
-        self.class.define_dynamic_method(role_name, resource) if Rolify.dynamic_shortcuts
-        self.class.adapter.add(self, role)
-      end
+
+        if role_class.role_join_class
+          if !roles.merge(role_class.role_join_class.undiscarded).include?(role)
+            self.class.define_dynamic_method(role_name, resource) if Rolify.dynamic_shortcuts
+            self.class.adapter.add(self, role)
+          end
+        else 
+
+          if !roles.include?(role)
+            self.class.define_dynamic_method(role_name, resource) if Rolify.dynamic_shortcuts
+            self.class.adapter.add(self, role)
+          end
+        end
+
+
       role
     end
     alias_method :grant, :add_role
