@@ -6,7 +6,14 @@ module Rolify
       def find_roles(role_name, relation, user)
         roles = user && (user != :any) ? user.roles : self.role_class
         roles = roles.where('resource_type IN (?)', self.relation_types_for(relation))
+
+        
+        case role_name
+        when Array
+        roles = roles.where("name in (?)", role_name) if role_name && (role_name != :any)
+        else
         roles = roles.where(:name => role_name.to_s) if role_name && (role_name != :any)
+        end
         
         if role_class.role_join_class
           roles.merge(role_class.role_join_class.undiscarded)
