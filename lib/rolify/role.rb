@@ -15,8 +15,8 @@ module Rolify
                                                   (resource.id if resource && !resource.is_a?(Class)))
 
 
-        if role_class.role_join_class
-          if !roles.merge(role_class.role_join_class.undiscarded).include?(role)
+      if self.class.role_class.role_join_class
+        if !roles.merge(self.class.role_class.role_join_class.undiscarded).include?(role)
             self.class.define_dynamic_method(role_name, resource) if Rolify.dynamic_shortcuts
             self.class.adapter.add(self, role)
           end
